@@ -16,7 +16,7 @@ These skills are **not** slash commands or user-invoked actions. Once installed,
 - **Semantic layer**: Create metrics, dimensions, and semantic models with MetricFlow
 - **dbt Mesh**: Work with multi-project setups, cross-project refs, model governance (contracts, versions, access)
 - **Platform operations**: Troubleshoot job failures, configure the dbt MCP server
-- **Migration**: Move projects from dbt Core to the Fusion engine
+- **Migration**: Move projects from dbt Core to dbt v2
 
 ## Installation
 
@@ -84,6 +84,54 @@ tessl install github:dbt-labs/dbt-agent-skills
 
 Browse the tile on the [Tessl registry](https://tessl.io/registry/dbt-labs/dbt-agent-skills).
 
+#### dbt packages (`dbt deps`)
+
+Install skills as dbt package dependencies. This repository publishes three independent packages, so you can install any combination:
+
+| Package | Subdirectory | Contents |
+|---------|--------------|----------|
+| `dbt_agent_skills` | `skills/dbt` | Everyday dbt development skills |
+| `dbt_migration_skills` | `skills/dbt-migration` | One-off migration and upgrade skills |
+| `dbt_extras_skills` | `skills/dbt-extras` | Extra skills, such as Mermaid DAG diagrams |
+
+Add any of them to your project's `packages.yml`:
+
+```yaml
+packages:
+  # Everyday dbt skills
+  - git: "https://github.com/dbt-labs/dbt-agent-skills.git"
+    subdirectory: "skills/dbt"
+    revision: main
+
+  # Migration skills (typically a one-off)
+  - git: "https://github.com/dbt-labs/dbt-agent-skills.git"
+    subdirectory: "skills/dbt-migration"
+    revision: main
+
+  # Extra skills
+  - git: "https://github.com/dbt-labs/dbt-agent-skills.git"
+    subdirectory: "skills/dbt-extras"
+    revision: main
+```
+
+Then opt in by setting `ai_provider` in your own project's `dbt_project.yml` (it is ignored if set inside a package). Without it, `dbt deps` succeeds but installs no skills:
+
+```yaml
+flags:
+  ai_provider: claude   # Claude Code -> .claude/skills
+```
+
+Supported values include `claude`, `codex`, `cursor`, `gemini`, `openai`, and `wizard` (dbt Wizard CLI). Everything except `claude` installs to `.agents/skills`. To target several, use a list (`ai_provider: [wizard, claude]`), or pass `--ai-provider claude,codex` on the command line.
+
+```bash
+dbt deps
+```
+
+> [!TIP]
+> `revision: main` tracks the latest changes. For reproducible installs, pin `revision` to a Git tag or commit SHA instead.
+
+See the [dbt documentation on package skills](https://docs.getdbt.com/docs/dbt-ai/package-skills) for the full configuration reference, including how to disable individual skills.
+
 ### Compatible Agents
 
 These skills work with AI agents that support the [Agent Skills](https://agentskills.io/home) format.
@@ -96,6 +144,7 @@ These skills work with AI agents that support the [Agent Skills](https://agentsk
 |-------|-------------|
 | `using-dbt-for-analytics-engineering` | Build and modify dbt models, debug errors, explore data sources, write tests |
 | `adding-dbt-unit-test` | Add unit tests for dbt models, practice test-driven development |
+| `maintaining-dbt-documentation` | Audit model/column doc coverage and draft missing descriptions in the project's own style |
 | `building-dbt-semantic-layer` | Create semantic models, metrics, and dimensions with MetricFlow |
 | `answering-natural-language-questions-with-dbt` | Answer business questions by querying the semantic layer |
 | `working-with-dbt-mesh` | Implement dbt Mesh governance (contracts, access, groups, versions) and cross-project collaboration |
@@ -104,6 +153,7 @@ These skills work with AI agents that support the [Agent Skills](https://agentsk
 | `fetching-dbt-docs` | Look up dbt documentation efficiently |
 | `running-dbt-commands` | Run dbt CLI commands with correct flags, selectors, and parameter formats |
 | `using-dbt-state` | Enable, configure, optimize, and debug dbt State — the server-backed reuse mechanism |
+| `querying-the-dbt-information-schema` | Answer questions about project metadata (models, tests, columns, lineage) with SQL on dbt v2 |
 
 ### dbt-migration (one-off use)
 
@@ -111,8 +161,9 @@ These skills are typically used once during a migration project rather than in e
 
 | Skill | Description |
 |-------|-------------|
-| `migrating-dbt-core-to-fusion` | Migrate dbt projects from dbt Core to the Fusion engine |
+| `migrating-dbt-core-to-v2` | Migrate dbt projects from dbt Core to dbt v2 |
 | `migrating-dbt-project-across-platforms` | Migrate dbt projects across data platforms |
+| `upgrading-dbt` | Upgrade a dbt-core v1 project (1.3-1.7) to the latest dbt, applying breaking, behavior, and deprecated changes |
 
 ## Prerequisites
 
